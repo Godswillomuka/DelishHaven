@@ -1,28 +1,37 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from models import db  # Import db from models
-from routes import api  # Import API routes
+from extensions import db, jwt, bcrypt  # ✅ Import from extensions.py
+from routes import routes  # ✅ Import AFTER initializing extensions
+from config import Config
 
 # Initialize Flask app
 app = Flask(__name__)
+app.config.from_object(Config)
 
-# Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///delishhaven.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-# Initialize database and migration
+# Initialize extensions
 db.init_app(app)
+jwt.init_app(app)
+bcrypt.init_app(app)
 migrate = Migrate(app, db)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# Register Blueprints
-app.register_blueprint(api, url_prefix="/api")
+# ✅ Register Blueprints AFTER app initialization
+app.register_blueprint(routes, url_prefix="/api")
 
 @app.route("/")
 def home():
-    return {"message": "Welcome to DelishHaven API"}
+    return jsonify({"message": "Welcome to DelishHaven API"})
+
+# Handle 404 errors
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({"error": "Not found"}), 404
+
+# Handle 500 errors
+@app.errorhandler(500)
+def server_error(error):
+    return jsonify({"error": "Internal Server Error"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
