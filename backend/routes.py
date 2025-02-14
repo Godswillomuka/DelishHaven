@@ -5,7 +5,7 @@ from models import User, Food, Order
 
 routes = Blueprint("routes", __name__)
 
-# ======================= USER AUTHENTICATION =======================
+##User authentication
 
 @routes.route("/users", methods=["POST"])
 def register_user():
@@ -53,7 +53,7 @@ def get_users():
     users = User.query.all()
     return jsonify([user.to_dict() for user in users]), 200
 
-# ======================= FOOD MANAGEMENT =======================
+##Food management
 
 @routes.route("/foods", methods=["POST"])
 @jwt_required()
@@ -112,7 +112,7 @@ def delete_food(food_id):
     db.session.commit()
     return jsonify({"message": "Food deleted successfully!"}), 200
 
-# ======================= ORDER MANAGEMENT =======================
+##Order management
 
 @routes.route("/orders", methods=["POST"])
 @jwt_required()
